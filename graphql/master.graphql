@@ -1,0 +1,7 @@
+query getActiveStates {
+  getActiveStates {
+    value
+    abbreviation
+    _id
+  }
+}

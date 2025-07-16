@@ -1,0 +1,34 @@
+query MeCheckUser {
+  meUser {
+    _id
+    firstName
+    status
+    userType
+    isVerified
+  }
+}
+
+query userSignup($input: UserSignupInput!) {
+  userSignup(input: $input)
+}
+
+query userSignupVerification($input: UserSignupVerificationInput!) {
+  userSignupVerification(input: $input)
+}
+
+# Query to fetch user's profile
+query MeUser {
+  meUser {
+    _id
+    firstName
+    lastName
+    status
+    email
+    phoneNumber
+    userType
+    profileId
+    isVerified
+    authType
+    status
+  }
+}

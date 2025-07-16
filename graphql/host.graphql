@@ -1,0 +1,126 @@
+query hostLogin($email: String!) {
+  hostLogin(email: $email)
+}
+
+query hostLoginVerification($input: HostLoginVerificationInput!) {
+  hostLoginVerification(input: $input)
+}
+
+mutation hostLogout {
+  hostLogout
+}
+
+mutation hostOnboarding($input: HostOnboardingInput!) {
+  hostOnboarding(input: $input)
+}
+
+query hostOnboardingData {
+  hostOnboardingData {
+    _id
+    user {
+      firstName
+      lastName
+    }
+    hostName
+    description
+    address {
+      addressLine1
+      addressLine2
+      city
+      zipcode
+      state {
+        stateId
+        stateName
+      }
+      coordinate {
+        type
+        coordinates
+      }
+      place {
+        placeId
+        displayName
+      }
+    }
+    websiteUrl
+    logoUrl
+    venueType
+    contactEmail
+    contactPhone
+    status
+    businessRegistrationNumber
+    averageEventSize
+    gstNumber
+    frequentCities
+    socialLinks {
+      instagram
+      soundcloud
+      spotify
+      youtube
+      mixcloud
+      bandcamp
+    }
+  }
+}
+
+query completeHostOnboarding {
+  completeHostOnboarding
+}
+
+query meHost {
+  meHost {
+    _id
+    user {
+      firstName
+      lastName
+    }
+    hostName
+    description
+    address {
+      addressLine1
+      addressLine2
+      city
+      zipcode
+      state {
+        stateId
+        stateName
+      }
+      coordinate {
+        type
+        coordinates
+      }
+      place {
+        placeId
+        displayName
+      }
+    }
+    websiteUrl
+    logoUrl
+    venueType
+    contactEmail
+    contactPhone
+    status
+    businessRegistrationNumber
+    averageEventSize
+    gstNumber
+    frequentCities
+    socialLinks {
+      instagram
+      soundcloud
+      spotify
+      youtube
+      mixcloud
+      bandcamp
+    }
+  }
+}
+query meCheckHost {
+  meHost {
+    _id
+    user {
+      firstName
+      lastName
+    }
+    hostName
+    status
+  }
+}
