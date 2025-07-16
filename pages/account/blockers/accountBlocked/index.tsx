@@ -4,7 +4,7 @@ import { sdk } from "@/utils/graphqlClient";
 import { GetServerSideProps } from "next";
 import Image from "next/image";
 import React from "react";
-import blocked from "../../../assets/svg/blocked.svg";
+import blocked from "../../../../assets/svg/blocked.svg";
 import CButton from "@/components/common/buttons/button";
 import { ButtonType } from "@/components/common/buttons/interface";
 import { redirectPathFromStatus } from "@/utils/functions/redirectPathFromStatus";
