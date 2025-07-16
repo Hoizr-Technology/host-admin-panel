@@ -146,10 +146,6 @@ export const formatUserStatus = (status: UserStatus): string => {
       return "Active";
     case UserStatus.Blocked:
       return "Blocked";
-    case UserStatus.OnboardingPending:
-      return "Onboarding Pending";
-    case UserStatus.SubUserEmailVerificationPending:
-      return "Email Verification Pending";
 
     default:
       return "";

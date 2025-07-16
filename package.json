@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "codegen": "graphql-codegen --config codegen.yml",
-    "vercel:build": "NEXT_PUBLIC_SERVER_BASE_URL=https://main-server-5a55.onrender.com npm run codegen && npm run build"
+    "vercel:build": "NEXT_PUBLIC_SERVER_BASE_URL=https://api.hoizr.com npm run codegen && npm run build"
   },
   "dependencies": {
     "@graphql-codegen/cli": "^5.0.2",
