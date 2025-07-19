@@ -47,7 +47,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
 
   return (
     <div className={font.className}>
-      <NextNProgress color="#191C24" />
+      <NextNProgress color="#dfdf1e" />
       <Head>
         <meta
           name="viewport"

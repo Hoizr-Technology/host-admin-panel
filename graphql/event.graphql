@@ -1,0 +1,120 @@
+query getEventById($eventId: String!) {
+  getEventById(eventId: $eventId) {
+    _id
+    host {
+      _id
+    }
+    title
+    description
+    eventDate
+    endDate
+    location {
+      _id
+      addressLine1
+      addressLine2
+      city
+      state {
+        stateId
+        stateName
+      }
+      zipcode
+      coordinate {
+        type
+        coordinates
+      }
+      place {
+        placeId
+        displayName
+      }
+    }
+    eventType
+    status
+    genresPreferred
+    expectedAudience
+    budget {
+      min
+      max
+    }
+    currency
+    listingComplete
+    pictures
+  }
+}
+
+mutation createEvent {
+  createEvent
+}
+
+mutation updateEvent(
+  $isFinalStep: Boolean!
+  $input: UpdateEventInput!
+  $eventId: String!
+) {
+  updateEvent(isFinalStep: $isFinalStep, input: $input, eventId: $eventId) {
+    success
+    otpKey
+  }
+}
+
+mutation complcompleteEventCreationet(
+  $otpId: String!
+  $otp: String!
+  $eventId: String!
+) {
+  completeEventCreation(otpId: $otpId, otp: $otp, eventId: $eventId)
+}
+
+query getAllEvents(
+  $search: String!
+  $sort: SortDataInput
+  $filter: [FilterDataInput!]
+  $page: PaginationInput
+) {
+  getAllEvents(
+    search: $search
+    sort: $sort
+    filter: $filter
+    pagination: $page
+  ) {
+    items {
+      _id
+      host {
+        _id
+      }
+      title
+      description
+      eventDate
+      endDate
+      location {
+        _id
+        addressLine1
+        addressLine2
+        city
+        state {
+          stateId
+          stateName
+        }
+        zipcode
+        coordinate {
+          type
+          coordinates
+        }
+        place {
+          placeId
+          displayName
+        }
+      }
+      eventType
+      status
+      genresPreferred
+      expectedAudience
+      budget {
+        min
+        max
+      }
+      currency
+      listingComplete
+    }
+    total
+  }
+}

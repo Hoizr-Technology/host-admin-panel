@@ -28,7 +28,7 @@ const config: Config = {
         blueNew: "#dfdf1e", // Updated to gold
         blackBg: "#1a1a1a", // Updated to surface color
         secondaryBg: "#2a2a28", // Dark gray for secondary backgrounds
-        secondary: "#2a2a28", // Dark gray
+        secondary: "#2a2a2a", // Surface2 gray
 
         // Status colors
         success: "#10b981",
