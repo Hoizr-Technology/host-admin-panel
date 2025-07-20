@@ -64,13 +64,13 @@ mutation complcompleteEventCreationet(
   completeEventCreation(otpId: $otpId, otp: $otp, eventId: $eventId)
 }
 
-query getAllEvents(
+query getAllEventsHost(
   $search: String!
   $sort: SortDataInput
   $filter: [FilterDataInput!]
   $page: PaginationInput
 ) {
-  getAllEvents(
+  getAllEventsHost(
     search: $search
     sort: $sort
     filter: $filter

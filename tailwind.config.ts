@@ -42,7 +42,9 @@ const config: Config = {
         dropdown: "#2a2a28",
         switch: "#3a3a39",
         toggle: "#3a3a39",
-        modal: "#1a1a1a", // Use surface color for modals
+        modal: "#1a1a1a",
+        tbbg: "#0a0a0a",
+        bor: "#232323",
 
         // Sidebar system
         sidebar: {

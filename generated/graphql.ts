@@ -135,7 +135,7 @@ export type Artist = {
   _id?: Maybe<Scalars['ID']['output']>;
   address?: Maybe<AddressInfo>;
   agencyProfileId?: Maybe<AgencyProfile>;
-  artistType?: Maybe<ArtistType>;
+  artistType?: Maybe<Array<Maybe<ArtistType>>>;
   bio?: Maybe<Scalars['String']['output']>;
   createdAt?: Maybe<Scalars['DateTimeISO']['output']>;
   experience?: Maybe<ExperienceLevel>;
@@ -187,7 +187,7 @@ export type ArtistLoginVerificationInput = {
 
 export type ArtistOnboardingInput = {
   address?: InputMaybe<AddressInfoInput>;
-  artistType?: InputMaybe<ArtistType>;
+  artistType?: InputMaybe<Array<ArtistType>>;
   bio?: InputMaybe<Scalars['String']['input']>;
   experience?: InputMaybe<ExperienceLevel>;
   genres?: InputMaybe<Array<Genres>>;
@@ -343,6 +343,7 @@ export type Event = {
   eventDate?: Maybe<Scalars['DateTimeISO']['output']>;
   eventType?: Maybe<EventType>;
   expectedAudience?: Maybe<Scalars['Float']['output']>;
+  firstStepCompleted: Scalars['Boolean']['output'];
   genresPreferred?: Maybe<Array<Genres>>;
   host: HostProfile;
   hostInvitations?: Maybe<Array<HostInvitation>>;
@@ -720,6 +721,7 @@ export type Query = {
   getAllArtists: ArtistPaginatedResponse;
   getAllConfigs: Array<Config>;
   getAllEvents: EventPaginatedResponse;
+  getAllEventsHost: EventPaginatedResponse;
   getAllStates: Array<State>;
   getAllTimezones: Array<Timezone>;
   getArtistApplicationsForEvent: Array<ArtistApplication>;
@@ -783,6 +785,14 @@ export type QueryGetAllArtistsArgs = {
 
 
 export type QueryGetAllEventsArgs = {
+  filter?: InputMaybe<Array<FilterDataInput>>;
+  pagination?: InputMaybe<PaginationInput>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<SortDataInput>;
+};
+
+
+export type QueryGetAllEventsHostArgs = {
   filter?: InputMaybe<Array<FilterDataInput>>;
   pagination?: InputMaybe<PaginationInput>;
   search?: InputMaybe<Scalars['String']['input']>;
@@ -953,6 +963,7 @@ export type UpdateEventInput = {
   eventDate?: InputMaybe<Scalars['DateTimeISO']['input']>;
   eventType?: InputMaybe<EventType>;
   expectedAudience?: InputMaybe<Scalars['Float']['input']>;
+  firstStepCompleted?: InputMaybe<Scalars['Boolean']['input']>;
   genresPreferred?: InputMaybe<Array<Genres>>;
   location?: InputMaybe<AddressInfoInput>;
   pictures?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -1060,7 +1071,7 @@ export type ComplcompleteEventCreationetMutationVariables = Exact<{
 
 export type ComplcompleteEventCreationetMutation = { __typename?: 'Mutation', completeEventCreation: boolean };
 
-export type GetAllEventsQueryVariables = Exact<{
+export type GetAllEventsHostQueryVariables = Exact<{
   search: Scalars['String']['input'];
   sort?: InputMaybe<SortDataInput>;
   filter?: InputMaybe<Array<FilterDataInput> | FilterDataInput>;
@@ -1068,7 +1079,27 @@ export type GetAllEventsQueryVariables = Exact<{
 }>;
 
 
-export type GetAllEventsQuery = { __typename?: 'Query', getAllEvents: { __typename?: 'EventPaginatedResponse', total: number, items: Array<{ __typename?: 'Event', _id: string, title?: string | null, description?: string | null, eventDate?: any | null, endDate?: any | null, eventType?: EventType | null, status?: EventStatus | null, genresPreferred?: Array<Genres> | null, expectedAudience?: number | null, currency?: string | null, listingComplete?: boolean | null, host: { __typename?: 'HostProfile', _id: string }, location?: { __typename?: 'AddressInfo', _id: string, addressLine1: string, addressLine2?: string | null, city: string, zipcode: number, state: { __typename?: 'StateData', stateId: string, stateName: string }, coordinate?: { __typename?: 'LocationCommon', type?: string | null, coordinates: Array<number> } | null, place?: { __typename?: 'Places', placeId: string, displayName: string } | null } | null, budget?: { __typename?: 'BudgetRange', min?: number | null, max?: number | null } | null }> } };
+export type GetAllEventsHostQuery = { __typename?: 'Query', getAllEventsHost: { __typename?: 'EventPaginatedResponse', total: number, items: Array<{ __typename?: 'Event', _id: string, title?: string | null, description?: string | null, eventDate?: any | null, endDate?: any | null, eventType?: EventType | null, status?: EventStatus | null, genresPreferred?: Array<Genres> | null, expectedAudience?: number | null, currency?: string | null, listingComplete?: boolean | null, host: { __typename?: 'HostProfile', _id: string }, location?: { __typename?: 'AddressInfo', _id: string, addressLine1: string, addressLine2?: string | null, city: string, zipcode: number, state: { __typename?: 'StateData', stateId: string, stateName: string }, coordinate?: { __typename?: 'LocationCommon', type?: string | null, coordinates: Array<number> } | null, place?: { __typename?: 'Places', placeId: string, displayName: string } | null } | null, budget?: { __typename?: 'BudgetRange', min?: number | null, max?: number | null } | null }> } };
+
+export type GetTrendingArtistsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetTrendingArtistsQuery = { __typename?: 'Query', getTrendingArtists: Array<{ __typename?: 'Artist', _id?: string | null, firstName: string, lastName: string, artistType?: Array<ArtistType | null> | null, stageName?: string | null, genres?: Array<Genres> | null, status?: ProfileStatus | null, profilePicture?: string | null, bio?: string | null, experience?: ExperienceLevel | null, hourRateCurrency?: Currency | null, websiteUrl?: string | null, isDiscoverable?: boolean | null, hoizrBookingUrl?: string | null, user?: { __typename?: 'User', _id: string } | null, address?: { __typename?: 'AddressInfo', addressLine1: string, addressLine2?: string | null, city: string, zipcode: number, state: { __typename?: 'StateData', stateId: string, stateName: string }, coordinate?: { __typename?: 'LocationCommon', type?: string | null, coordinates: Array<number> } | null, place?: { __typename?: 'Places', placeId: string, displayName: string } | null } | null, socialLinks?: { __typename?: 'SocialLinks', instagram?: string | null, facebook?: string | null, twitter?: string | null, soundcloud?: string | null, spotify?: string | null, youtube?: string | null, mixcloud?: string | null, bandcamp?: string | null } | null, portfolio?: Array<{ __typename?: 'ArtistPortfolio', _id?: string | null, type: PortfolioType, title: string, description?: string | null, url: string }> | null, testimonials?: Array<{ __typename?: 'Testimonial', name: string, role?: string | null, content: string, rating?: number | null, profileImage?: string | null }> | null }> };
+
+export type GetNearbyArtistsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetNearbyArtistsQuery = { __typename?: 'Query', getNearbyArtists: Array<{ __typename?: 'Artist', _id?: string | null, firstName: string, lastName: string, artistType?: Array<ArtistType | null> | null, stageName?: string | null, genres?: Array<Genres> | null, status?: ProfileStatus | null, profilePicture?: string | null, bio?: string | null, experience?: ExperienceLevel | null, hourRateCurrency?: Currency | null, websiteUrl?: string | null, isDiscoverable?: boolean | null, hoizrBookingUrl?: string | null, user?: { __typename?: 'User', _id: string } | null, address?: { __typename?: 'AddressInfo', addressLine1: string, addressLine2?: string | null, city: string, zipcode: number, state: { __typename?: 'StateData', stateId: string, stateName: string }, coordinate?: { __typename?: 'LocationCommon', type?: string | null, coordinates: Array<number> } | null, place?: { __typename?: 'Places', placeId: string, displayName: string } | null } | null, socialLinks?: { __typename?: 'SocialLinks', instagram?: string | null, facebook?: string | null, twitter?: string | null, soundcloud?: string | null, spotify?: string | null, youtube?: string | null, mixcloud?: string | null, bandcamp?: string | null } | null, portfolio?: Array<{ __typename?: 'ArtistPortfolio', _id?: string | null, type: PortfolioType, title: string, description?: string | null, url: string }> | null, testimonials?: Array<{ __typename?: 'Testimonial', name: string, role?: string | null, content: string, rating?: number | null, profileImage?: string | null }> | null }> };
+
+export type GetAllArtistsQueryVariables = Exact<{
+  search: Scalars['String']['input'];
+  sort?: InputMaybe<SortDataInput>;
+  filter?: InputMaybe<Array<FilterDataInput> | FilterDataInput>;
+  page: PaginationInput;
+}>;
+
+
+export type GetAllArtistsQuery = { __typename?: 'Query', getAllArtists: { __typename?: 'ArtistPaginatedResponse', total: number, items: Array<{ __typename?: 'Artist', _id?: string | null, firstName: string, lastName: string, artistType?: Array<ArtistType | null> | null, stageName?: string | null, genres?: Array<Genres> | null, status?: ProfileStatus | null, profilePicture?: string | null, bio?: string | null, experience?: ExperienceLevel | null, hourRateCurrency?: Currency | null, websiteUrl?: string | null, isDiscoverable?: boolean | null, hoizrBookingUrl?: string | null, user?: { __typename?: 'User', _id: string } | null, address?: { __typename?: 'AddressInfo', addressLine1: string, addressLine2?: string | null, city: string, zipcode: number, state: { __typename?: 'StateData', stateId: string, stateName: string }, coordinate?: { __typename?: 'LocationCommon', type?: string | null, coordinates: Array<number> } | null, place?: { __typename?: 'Places', placeId: string, displayName: string } | null } | null, socialLinks?: { __typename?: 'SocialLinks', instagram?: string | null, facebook?: string | null, twitter?: string | null, soundcloud?: string | null, spotify?: string | null, youtube?: string | null, mixcloud?: string | null, bandcamp?: string | null } | null, portfolio?: Array<{ __typename?: 'ArtistPortfolio', _id?: string | null, type: PortfolioType, title: string, description?: string | null, url: string }> | null, testimonials?: Array<{ __typename?: 'Testimonial', name: string, role?: string | null, content: string, rating?: number | null, profileImage?: string | null }> | null }> } };
 
 export type HostLoginQueryVariables = Exact<{
   email: Scalars['String']['input'];
@@ -1222,9 +1253,14 @@ export const ComplcompleteEventCreationetDocument = gql`
   completeEventCreation(otpId: $otpId, otp: $otp, eventId: $eventId)
 }
     `;
-export const GetAllEventsDocument = gql`
-    query getAllEvents($search: String!, $sort: SortDataInput, $filter: [FilterDataInput!], $page: PaginationInput) {
-  getAllEvents(search: $search, sort: $sort, filter: $filter, pagination: $page) {
+export const GetAllEventsHostDocument = gql`
+    query getAllEventsHost($search: String!, $sort: SortDataInput, $filter: [FilterDataInput!], $page: PaginationInput) {
+  getAllEventsHost(
+    search: $search
+    sort: $sort
+    filter: $filter
+    pagination: $page
+  ) {
     items {
       _id
       host {
@@ -1263,6 +1299,225 @@ export const GetAllEventsDocument = gql`
       }
       currency
       listingComplete
+    }
+    total
+  }
+}
+    `;
+export const GetTrendingArtistsDocument = gql`
+    query getTrendingArtists {
+  getTrendingArtists {
+    _id
+    user {
+      _id
+    }
+    firstName
+    lastName
+    artistType
+    stageName
+    genres
+    status
+    profilePicture
+    bio
+    address {
+      addressLine1
+      addressLine2
+      city
+      state {
+        stateId
+        stateName
+      }
+      zipcode
+      coordinate {
+        type
+        coordinates
+      }
+      place {
+        placeId
+        displayName
+      }
+    }
+    experience
+    hourRateCurrency
+    websiteUrl
+    socialLinks {
+      instagram
+      facebook
+      twitter
+      soundcloud
+      spotify
+      youtube
+      mixcloud
+      bandcamp
+    }
+    isDiscoverable
+    portfolio {
+      _id
+      type
+      title
+      description
+      url
+    }
+    portfolio {
+      _id
+      type
+      title
+      description
+      url
+    }
+    testimonials {
+      name
+      role
+      content
+      rating
+      profileImage
+    }
+    hoizrBookingUrl
+  }
+}
+    `;
+export const GetNearbyArtistsDocument = gql`
+    query getNearbyArtists {
+  getNearbyArtists {
+    _id
+    user {
+      _id
+    }
+    firstName
+    lastName
+    artistType
+    stageName
+    genres
+    status
+    profilePicture
+    bio
+    address {
+      addressLine1
+      addressLine2
+      city
+      state {
+        stateId
+        stateName
+      }
+      zipcode
+      coordinate {
+        type
+        coordinates
+      }
+      place {
+        placeId
+        displayName
+      }
+    }
+    experience
+    hourRateCurrency
+    websiteUrl
+    socialLinks {
+      instagram
+      facebook
+      twitter
+      soundcloud
+      spotify
+      youtube
+      mixcloud
+      bandcamp
+    }
+    isDiscoverable
+    portfolio {
+      _id
+      type
+      title
+      description
+      url
+    }
+    portfolio {
+      _id
+      type
+      title
+      description
+      url
+    }
+    testimonials {
+      name
+      role
+      content
+      rating
+      profileImage
+    }
+    hoizrBookingUrl
+  }
+}
+    `;
+export const GetAllArtistsDocument = gql`
+    query getAllArtists($search: String!, $sort: SortDataInput, $filter: [FilterDataInput!], $page: PaginationInput!) {
+  getAllArtists(search: $search, sort: $sort, filter: $filter, pagination: $page) {
+    items {
+      _id
+      user {
+        _id
+      }
+      firstName
+      lastName
+      artistType
+      stageName
+      genres
+      status
+      profilePicture
+      bio
+      address {
+        addressLine1
+        addressLine2
+        city
+        state {
+          stateId
+          stateName
+        }
+        zipcode
+        coordinate {
+          type
+          coordinates
+        }
+        place {
+          placeId
+          displayName
+        }
+      }
+      experience
+      hourRateCurrency
+      websiteUrl
+      socialLinks {
+        instagram
+        facebook
+        twitter
+        soundcloud
+        spotify
+        youtube
+        mixcloud
+        bandcamp
+      }
+      isDiscoverable
+      portfolio {
+        _id
+        type
+        title
+        description
+        url
+      }
+      portfolio {
+        _id
+        type
+        title
+        description
+        url
+      }
+      testimonials {
+        name
+        role
+        content
+        rating
+        profileImage
+      }
+      hoizrBookingUrl
     }
     total
   }
@@ -1491,8 +1746,17 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     complcompleteEventCreationet(variables: ComplcompleteEventCreationetMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ComplcompleteEventCreationetMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<ComplcompleteEventCreationetMutation>({ document: ComplcompleteEventCreationetDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'complcompleteEventCreationet', 'mutation', variables);
     },
-    getAllEvents(variables: GetAllEventsQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetAllEventsQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetAllEventsQuery>({ document: GetAllEventsDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'getAllEvents', 'query', variables);
+    getAllEventsHost(variables: GetAllEventsHostQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetAllEventsHostQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetAllEventsHostQuery>({ document: GetAllEventsHostDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'getAllEventsHost', 'query', variables);
+    },
+    getTrendingArtists(variables?: GetTrendingArtistsQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetTrendingArtistsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetTrendingArtistsQuery>({ document: GetTrendingArtistsDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'getTrendingArtists', 'query', variables);
+    },
+    getNearbyArtists(variables?: GetNearbyArtistsQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetNearbyArtistsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetNearbyArtistsQuery>({ document: GetNearbyArtistsDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'getNearbyArtists', 'query', variables);
+    },
+    getAllArtists(variables: GetAllArtistsQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetAllArtistsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetAllArtistsQuery>({ document: GetAllArtistsDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'getAllArtists', 'query', variables);
     },
     hostLogin(variables: HostLoginQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<HostLoginQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<HostLoginQuery>({ document: HostLoginDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'hostLogin', 'query', variables);

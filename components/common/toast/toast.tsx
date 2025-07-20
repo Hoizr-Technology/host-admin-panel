@@ -15,7 +15,7 @@ export const Toast: FC<ToastProps> = ({ message, type }) => {
       case "success":
         return {
           container: "text-black bg-primary",
-          icon: "bg-white text-greenNeon",
+          icon: "bg-black text-greenNeon",
           iconPath: (
             <svg
               className="w-5 h-5"
@@ -97,7 +97,7 @@ export const Toast: FC<ToastProps> = ({ message, type }) => {
       <div className="ms-3 text-sm font-normal">{message}</div>
       <button
         type="button"
-        className="ms-auto -mx-1.5 -my-1.5 rounded-xl p-1.5 inline-flex items-center justify-center h-8 w-8 text-white"
+        className="ms-auto -mx-1.5 -my-1.5 rounded-xl p-1.5 inline-flex items-center justify-center h-8 w-8 text-black"
         aria-label="Close"
         onClick={() => setToastData(null)}
       >

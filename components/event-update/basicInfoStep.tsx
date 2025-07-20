@@ -71,6 +71,7 @@ const BasicInfoStep = () => {
           eventDate: new Date(eventDate),
           endDate: new Date(endDate),
           eventType,
+          firstStepCompleted: true,
         },
       });
       router.push(`/event-update/location?eventId=${eventId}`);

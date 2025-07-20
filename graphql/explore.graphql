@@ -1,0 +1,225 @@
+query getTrendingArtists {
+  getTrendingArtists {
+    _id
+    user {
+      _id
+    }
+    firstName
+    lastName
+    artistType
+    stageName
+    genres
+    status
+    profilePicture
+    bio
+    address {
+      addressLine1
+      addressLine2
+      city
+      state {
+        stateId
+        stateName
+      }
+      zipcode
+      coordinate {
+        type
+        coordinates
+      }
+      place {
+        placeId
+        displayName
+      }
+    }
+    experience
+    hourRateCurrency
+    websiteUrl
+    socialLinks {
+      instagram
+      facebook
+      twitter
+      soundcloud
+      spotify
+      youtube
+      mixcloud
+      bandcamp
+    }
+    isDiscoverable
+    portfolio {
+      _id
+      type
+      title
+      description
+      url
+    }
+    portfolio {
+      _id
+      type
+      title
+      description
+      url
+    }
+    testimonials {
+      name
+      role
+      content
+      rating
+      profileImage
+    }
+    hoizrBookingUrl
+  }
+}
+
+query getNearbyArtists {
+  getNearbyArtists {
+    _id
+    user {
+      _id
+    }
+    firstName
+    lastName
+    artistType
+    stageName
+    genres
+    status
+    profilePicture
+    bio
+    address {
+      addressLine1
+      addressLine2
+      city
+      state {
+        stateId
+        stateName
+      }
+      zipcode
+      coordinate {
+        type
+        coordinates
+      }
+      place {
+        placeId
+        displayName
+      }
+    }
+    experience
+    hourRateCurrency
+    websiteUrl
+    socialLinks {
+      instagram
+      facebook
+      twitter
+      soundcloud
+      spotify
+      youtube
+      mixcloud
+      bandcamp
+    }
+    isDiscoverable
+    portfolio {
+      _id
+      type
+      title
+      description
+      url
+    }
+    portfolio {
+      _id
+      type
+      title
+      description
+      url
+    }
+    testimonials {
+      name
+      role
+      content
+      rating
+      profileImage
+    }
+    hoizrBookingUrl
+  }
+}
+
+query getAllArtists(
+  $search: String!
+  $sort: SortDataInput
+  $filter: [FilterDataInput!]
+  $page: PaginationInput!
+) {
+  getAllArtists(
+    search: $search
+    sort: $sort
+    filter: $filter
+    pagination: $page
+  ) {
+    items {
+      _id
+      user {
+        _id
+      }
+      firstName
+      lastName
+      artistType
+      stageName
+      genres
+      status
+      profilePicture
+      bio
+      address {
+        addressLine1
+        addressLine2
+        city
+        state {
+          stateId
+          stateName
+        }
+        zipcode
+        coordinate {
+          type
+          coordinates
+        }
+        place {
+          placeId
+          displayName
+        }
+      }
+      experience
+      hourRateCurrency
+      websiteUrl
+      socialLinks {
+        instagram
+        facebook
+        twitter
+        soundcloud
+        spotify
+        youtube
+        mixcloud
+        bandcamp
+      }
+      isDiscoverable
+      portfolio {
+        _id
+        type
+        title
+        description
+        url
+      }
+      portfolio {
+        _id
+        type
+        title
+        description
+        url
+      }
+      testimonials {
+        name
+        role
+        content
+        rating
+        profileImage
+      }
+      hoizrBookingUrl
+    }
+    total
+  }
+}

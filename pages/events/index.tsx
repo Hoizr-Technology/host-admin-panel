@@ -1,189 +1,187 @@
 import MainLayout from "@/components/layouts/mainBodyLayout";
+import DataTable from "@/components/common/dataTable";
+import DataTableDateTimeCell from "@/components/common/dataTable/common/dateTimeCell";
+import DataTableNumberCell from "@/components/common/dataTable/common/numberCell";
+import DataTableTextCell from "@/components/common/dataTable/common/textCell";
+import CButton from "@/components/common/buttons/button";
+import { ButtonType } from "@/components/common/buttons/interface";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   EventStatus,
   ProfileStatus,
   RowsPerPageEnum,
+  FilterDataEnum,
+  FilterDataInput,
+  SortDataEnum,
+  SortDataInput,
+  Event,
 } from "@/generated/graphql";
 import useGlobalStore from "@/store/global";
-import useUserStore from "@/store/user";
 import { redirectPathFromStatus } from "@/utils/functions/redirectPathFromStatus";
 import { sdk } from "@/utils/graphqlClient";
+import {
+  extractErrorMessage,
+  getPageSizeNumber,
+  getPageSizeEnum,
+} from "@/utils/functions/common";
+import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Calendar,
-  Filter,
-  Search,
   Plus,
   Eye,
   Edit,
   TrendingUp,
   Users,
   DollarSign,
-  CheckCircle2,
-  Clock,
-  FileText,
-  XCircle,
-  ChevronDown,
-  SlidersHorizontal,
 } from "lucide-react";
-import CButton from "@/components/common/buttons/button";
-import { ButtonType } from "@/components/common/buttons/interface";
-import {
-  extractErrorMessage,
-  getPageSizeNumber,
-} from "@/utils/functions/common";
 
 type NextPageWithLayout = React.FC & {
   getLayout?: (page: React.ReactNode) => React.ReactNode;
 };
 
-interface Event {
-  id: string;
-  name: string;
-  date: string;
-  time: string;
-  status: "confirmed" | "pending" | "draft" | "cancelled";
-  djsApplied: number;
-  venue?: string;
-  genre?: string;
-  budget?: number;
-}
-
-interface FilterState {
-  search: string;
-  status: string;
-  dateRange: string;
-  genre: string;
-  budgetRange: string;
-}
-
 const EventsDashboard: NextPageWithLayout = () => {
   const router = useRouter();
-  const { setToastData } = useGlobalStore();
-  const [loading, setLoading] = useState(true); // Add loading state
+  const { setToastData, setSelectedSideBarMenu } = useGlobalStore();
+  const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState("");
+
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
     revenue: 0,
     avgApplications: 0,
   });
+
   const [events, setEvents] = useState<any[]>([]);
   const [totalEvents, setTotalEvents] = useState(0);
-  const [pageInfo, setPageInfo] = useState({
-    pageNumber: 1,
-    rowsPerPage: RowsPerPageEnum.Ten,
-  });
 
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>(events);
-  const [filters, setFilters] = useState<FilterState>({
-    search: "",
-    status: "all",
-    dateRange: "all",
-    genre: "all",
-    budgetRange: "all",
-  });
-
-  const [showFilters, setShowFilters] = useState(false);
-
-  const avgApplications =
-    events.reduce((sum, event) => sum + event.djsApplied, 0) / totalEvents || 0;
-  const bookingRate =
-    (events.filter((e) => e.status === "confirmed").length / totalEvents) *
-      100 || 0;
-  const totalRevenue = events.reduce(
-    (sum, event) => sum + (event.budget || 0),
-    0
+  // Table Pagination States
+  const [pageIndex, setPageIndex] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<RowsPerPageEnum>(
+    RowsPerPageEnum.Ten
   );
 
-  const fetchEvents = async () => {
-    setLoading(true);
-    try {
-      const response = await sdk.getAllEvents({
-        search: "",
-        sort: null,
-        filter: [],
-        page: {
-          pageNumber: pageInfo.pageNumber,
-          rowsPerPage: pageInfo.rowsPerPage,
-        },
-      });
+  // Table Filter States
+  const [filterData, setFilterData] = useState<{
+    key?: string;
+    filterFn?: FilterDataEnum;
+    value?: string | string[];
+  }>();
+  const [searchFilter, setSearchFilter] = useState<string>();
 
-      if (response.getAllEvents) {
-        setEvents(response.getAllEvents.items || []);
-        setTotalEvents(response.getAllEvents.total || 0);
+  // Table Sorting States
+  const [sortData, setSortData] = useState<{
+    key?: string;
+    sortType?: SortDataEnum;
+  }>();
 
-        // Calculate stats
-        const pendingCount = response.getAllEvents.items.filter(
-          (e: any) => e.status === EventStatus.Draft
-        ).length;
+  // Table Download States
+  const downloadFileName = useMemo(() => "EventsData", []);
+  const [downloadBtnLoading, setDownloadBtnLoading] = useState(false);
 
-        const totalRevenue = response.getAllEvents.items.reduce(
-          (sum: number, event: any) => sum + (event.budget?.min || 0),
-          0
-        );
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoading(true);
+      try {
+        let filterInput: FilterDataInput | null = null;
+        let sortInput: SortDataInput | null = null;
 
-        const totalApplications = response.getAllEvents.items.reduce(
-          (sum: number, event: any) => sum + (event.djsApplied || 0),
-          0
-        );
+        if (
+          filterData &&
+          filterData.key &&
+          filterData.value &&
+          filterData.filterFn
+        ) {
+          filterInput = {
+            key: filterData.key,
+            operation: filterData.filterFn,
+          };
 
-        const avgApplications =
-          response.getAllEvents.items.length > 0
-            ? totalApplications / response.getAllEvents.items.length
-            : 0;
+          if (Array.isArray(filterData.value)) {
+            filterInput.valueArr = filterData.value as string[];
+          } else {
+            filterInput.value = filterData.value.toString();
+          }
+        }
 
-        setStats({
-          total: response.getAllEvents.total,
-          pending: pendingCount,
-          revenue: totalRevenue,
-          avgApplications,
+        if (sortData && sortData.key && sortData.sortType) {
+          sortInput = {
+            key: sortData.key,
+            sortType: sortData.sortType,
+          };
+        }
+
+        const response = await sdk.getAllEventsHost({
+          search: searchFilter || "",
+          sort: sortInput,
+          filter: filterInput ? [filterInput] : [],
+          page: {
+            pageNumber: pageIndex,
+            rowsPerPage: pageSize,
+          },
         });
+
+        if (response.getAllEventsHost) {
+          setEvents(response.getAllEventsHost.items || []);
+          setTotalEvents(response.getAllEventsHost.total || 0);
+
+          // Calculate stats
+          const pendingCount = response.getAllEventsHost.items.filter(
+            (e: any) => e.status === EventStatus.Draft
+          ).length;
+
+          const totalRevenue = response.getAllEventsHost.items.reduce(
+            (sum: number, event: any) => sum + (event.budget?.min || 0),
+            0
+          );
+
+          const totalApplications = response.getAllEventsHost.items.reduce(
+            (sum: number, event: any) => sum + (event.djsApplied || 0),
+            0
+          );
+
+          const avgApplications =
+            response.getAllEventsHost.items.length > 0
+              ? totalApplications / response.getAllEventsHost.items.length
+              : 0;
+
+          setStats({
+            total: response.getAllEventsHost.total,
+            pending: pendingCount,
+            revenue: totalRevenue,
+            avgApplications,
+          });
+        }
+      } catch (error) {
+        const errorMessage = extractErrorMessage(error);
+        setToastData({
+          type: "error",
+          message: errorMessage,
+        });
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      const errorMessage = extractErrorMessage(error);
-      setToastData({
-        type: "error",
-        message: errorMessage,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  useEffect(() => {
+    setSelectedSideBarMenu("Events");
     fetchEvents();
-  }, [pageInfo]);
-
-  const applyFilters = () => {
-    let filtered = events;
-
-    // Search filter
-    if (filters.search) {
-      filtered = filtered.filter(
-        (event) =>
-          event.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-          event.venue?.toLowerCase().includes(filters.search.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (filters.status !== "all") {
-      filtered = filtered.filter((event) => event.status === filters.status);
-    }
-
-    // Genre filter
-    if (filters.genre !== "all") {
-      filtered = filtered.filter((event) => event.genre === filters.genre);
-    }
-
-    setFilteredEvents(filtered);
-  };
-
-  useEffect(() => {
-    applyFilters();
-  }, [filters, events]);
+  }, [
+    setToastData,
+    setSelectedSideBarMenu,
+    pageIndex,
+    pageSize,
+    filterData,
+    sortData,
+    searchFilter,
+  ]);
 
   const handleCreateEvent = async () => {
     try {
@@ -202,55 +200,157 @@ const EventsDashboard: NextPageWithLayout = () => {
     }
   };
 
+  const handleEditEvent = (eventId: string) => {
+    router.push(`/event-update/basic-info?eventId=${eventId}&edit=true`);
+  };
+
   const handleViewEvent = (eventId: string) => {
     router.push(`/events/${eventId}`);
   };
 
-  const handleEditEvent = (eventId: string) => {
-    router.push(`/events/${eventId}/edit`);
+  // Format status for display
+  const formatEventStatus = (status: EventStatus) => {
+    switch (status) {
+      case EventStatus.Draft:
+        return "Draft";
+      case EventStatus.Active:
+        return "Published";
+      case EventStatus.Cancelled:
+        return "Cancelled";
+      case EventStatus.Completed:
+        return "Completed";
+      default:
+        return status;
+    }
   };
 
-  const handlePromoteEvent = (eventId: string) => {
-    setToastData({
-      message: "Event promotion feature coming soon!",
-      type: "success",
-    });
-  };
+  const columnHelper = createColumnHelper<Event>();
 
-  const EmptyState = () => (
-    <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="text-6xl mb-4">🎉</div>
-      <h3 className="text-xl font-semibold text-white mb-2">No events yet!</h3>
-      <p className="text-primary mb-6 text-center max-w-md">
-        Get started by creating your first event to attract DJs and sell
-        tickets.
-      </p>
-      <button
-        onClick={handleCreateEvent}
-        className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-      >
-        Create New Event
-      </button>
-    </div>
+  const columns: ColumnDef<Event, any>[] = useMemo(
+    () => [
+      columnHelper.accessor("title", {
+        header: "Event Title",
+        enableColumnFilter: true,
+        filterFn: "auto",
+        enableSorting: true,
+        cell: ({ row }) => <DataTableTextCell value={row.original.title} />,
+      }),
+
+      columnHelper.accessor("budget.min", {
+        header: "Budget (Min)",
+        enableColumnFilter: false,
+        filterFn: "auto",
+        enableSorting: true,
+        cell: ({ row }) => (
+          <DataTableNumberCell
+            value={row.original.budget?.min}
+            isPrice={true}
+          />
+        ),
+      }),
+      columnHelper.accessor("budget.max", {
+        header: "Budget (Max)",
+        enableColumnFilter: false,
+        filterFn: "auto",
+        enableSorting: true,
+        cell: ({ row }) => (
+          <DataTableNumberCell
+            value={row.original.budget?.max}
+            isPrice={true}
+          />
+        ),
+      }),
+      columnHelper.accessor("status", {
+        header: "Status",
+        enableColumnFilter: true,
+        filterFn: "auto",
+        enableSorting: true,
+        cell: ({ row }) => (
+          <DataTableTextCell
+            value={formatEventStatus(row.original.status ?? EventStatus.Draft)}
+          />
+        ),
+      }),
+
+      columnHelper.accessor("genresPreferred", {
+        header: "Genres",
+        enableColumnFilter: false,
+        filterFn: "auto",
+        enableSorting: false,
+        cell: ({ row }) => (
+          <DataTableTextCell
+            value={row.original.genresPreferred?.join(", ") || "N/A"}
+          />
+        ),
+      }),
+
+      columnHelper.display({
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => {
+          return (
+            <TooltipProvider>
+              <div className="flex space-x-2 justify-center items-center">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Eye
+                      className="text-primary text-lg cursor-pointer"
+                      onClick={() => handleViewEvent(row.original._id)}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white max-w-xs">
+                    <p>View event details</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Edit
+                      className="text-primary text-lg cursor-pointer"
+                      onClick={() => handleEditEvent(row.original._id)}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white max-w-xs">
+                    <p>Edit event</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
+          );
+        },
+      }),
+    ],
+    [columnHelper]
   );
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+  const handleCsvDownload = async (selectedIds?: string[]) => {
+    // setDownloadBtnLoading(true);
+    // try {
+    //   const response = await sdk.eventsHostCsvExport({
+    //     input: {
+    //       fileName: "eventsData",
+    //       selectedRows: selectedIds,
+    //     },
+    //   });
+    //   if (!response.eventsHostCsvExport) {
+    //     setToastData({
+    //       message:
+    //         "Something went wrong while exporting your data. Please try again later!",
+    //       type: "error",
+    //     });
+    //     return;
+    //   }
+    //   window.open(response.eventsHostCsvExport, "_blank", "noreferrer");
+    // } catch (error) {
+    //   const errorMessage = extractErrorMessage(error);
+    //   setToastData({
+    //     type: "error",
+    //     message: errorMessage,
+    //   });
+    // } finally {
+    //   setDownloadBtnLoading(false);
+    // }
   };
 
-  // Format time for display
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -279,7 +379,7 @@ const EventsDashboard: NextPageWithLayout = () => {
               <p className="text-2xl font-bold text-white">{stats.total}</p>
             </div>
             <div className="bg-primary p-3 rounded-full">
-              <Calendar className="h-6 w-6 text-black" />
+              <Calendar className="h-6 w-6 text-white" />
             </div>
           </div>
         </div>
@@ -294,7 +394,7 @@ const EventsDashboard: NextPageWithLayout = () => {
               </p>
             </div>
             <div className="bg-primary p-3 rounded-full">
-              <Users className="h-6 w-6 text-black" />
+              <Users className="h-6 w-6 text-white" />
             </div>
           </div>
         </div>
@@ -304,13 +404,10 @@ const EventsDashboard: NextPageWithLayout = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-primary">Booking Rate</p>
-              <p className="text-2xl font-bold text-white">
-                {/* Calculate based on your business logic */}
-                N/A
-              </p>
+              <p className="text-2xl font-bold text-white">N/A</p>
             </div>
             <div className="bg-primary p-3 rounded-full">
-              <TrendingUp className="h-6 w-6 text-black" />
+              <TrendingUp className="h-6 w-6 text-white" />
             </div>
           </div>
         </div>
@@ -325,150 +422,82 @@ const EventsDashboard: NextPageWithLayout = () => {
               </p>
             </div>
             <div className="bg-primary p-3 rounded-full">
-              <DollarSign className="h-6 w-6 text-black" />
+              <DollarSign className="h-6 w-6 text-white" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex flex-col lg:flex-row gap-4">
-        {/* Search */}
-        <div className="flex-1 relative">
-          {/* <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" /> */}
-          <input
-            type="text"
-            placeholder="Search events by name, venue, or DJ..."
-            className="input input-primary"
-            value={filters.search}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, search: e.target.value }))
-            }
+      {/* Events DataTable */}
+      <div className="" style={{ height: "calc(100vh - 400px)" }}>
+        {events.length > 0 ||
+        filterData !== undefined ||
+        sortData !== undefined ||
+        (searchFilter ?? "") !== "" ? (
+          <DataTable
+            totalRows={totalEvents}
+            columns={columns}
+            data={events}
+            loading={loading}
+            addClickHandler={handleCreateEvent}
+            manualPagination={true}
+            pageSize={getPageSizeNumber(pageSize)}
+            pageCount={Math.ceil(totalEvents / getPageSizeNumber(pageSize))}
+            nextPage={() => {
+              const totalPages = Math.ceil(
+                totalEvents / getPageSizeNumber(pageSize)
+              );
+              if (pageIndex < totalPages) {
+                setPageIndex((prev) => prev + 1);
+              }
+            }}
+            prevPage={() => {
+              if (pageIndex > 1) {
+                setPageIndex((prev) => prev - 1);
+              }
+            }}
+            paginationData={{
+              pageIndex: pageIndex - 1, // tanstack table considers index to start from 0
+              pageSize: getPageSizeNumber(pageSize),
+            }}
+            pageSizeChangeHandler={(size) => {
+              setPageIndex(1);
+              setPageSize(getPageSizeEnum(size));
+            }}
+            downloadClickHandler={async (selectedIds) => {
+              handleCsvDownload(selectedIds);
+            }}
+            downloadFileName={downloadFileName}
+            downloadLoading={downloadBtnLoading}
+            filterClickHandler={async (data) => {
+              setPageIndex(1);
+              setSearchFilter(undefined);
+              setFilterData(data);
+            }}
+            sortClickHandler={async (data) => {
+              setSortData(data);
+            }}
+            setSearchFilter={(e) => {
+              setPageIndex(1);
+              setFilterData(undefined);
+              setSearchFilter(e);
+            }}
           />
-        </div>
+        ) : (
+          <div className="bg-secondaryBg text-white rounded-xl p-8 flex flex-col items-center justify-center min-h-[300px] space-y-4 border border-gray-300 shadow-sm">
+            <div className="text-base font-light text-blackBg whitespace-pre-wrap text-center">
+              {"No events found,\nstart by creating your first event."}
+            </div>
+            <button
+              onClick={handleCreateEvent}
+              className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors flex justify-between items-center space-x-2 text-sm"
+            >
+              <Plus size={15} />
+              <span>{"Create Event"}</span>
+            </button>
+          </div>
+        )}
       </div>
-
-      {/* Events Table */}
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      ) : events.length > 0 ? (
-        <div className="bg-card rounded-lg border border-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-secondaryBg border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-white">
-                    Event Name
-                  </th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-white">
-                    Date & Time
-                  </th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-white">
-                    Status
-                  </th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-white">
-                    Venue
-                  </th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-white">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {events.map((event: any) => (
-                  <tr
-                    key={event._id}
-                    className="hover:bg-secondaryBg transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div>
-                        <div className="font-medium text-white">
-                          {event.title}
-                        </div>
-                        {event.genre && (
-                          <div className="text-sm text-gray-500">
-                            {event.genresPreferred?.join(", ") || "N/A"}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-white">
-                        {formatDate(event.eventDate)}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {formatTime(event.eventDate)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {/* <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          event.status
-                        )}`}
-                      >
-                        {getStatusIcon(event.status)}
-                        {event.status.charAt(0).toUpperCase() +
-                          event.status.slice(1)}
-                      </span> */}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-primary">
-                        {event.location?.addressLine1 || "Venue not set"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        {/* ... action buttons ... */}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-            <div className="text-sm text-gray-500">
-              Showing {events.length} of {totalEvents} events
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() =>
-                  setPageInfo((prev) => ({
-                    ...prev,
-                    pageNumber: Math.max(1, prev.pageNumber - 1),
-                  }))
-                }
-                disabled={pageInfo.pageNumber === 1}
-                className="px-3 py-1 rounded border border-gray-600 disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() =>
-                  setPageInfo((prev) => ({
-                    ...prev,
-                    pageNumber: prev.pageNumber + 1,
-                  }))
-                }
-                disabled={
-                  events.length < getPageSizeNumber(pageInfo.rowsPerPage)
-                }
-                className="px-3 py-1 rounded border border-gray-600 disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-card rounded-lg border border-card">
-          <EmptyState />
-        </div>
-      )}
     </div>
   );
 };
